@@ -5,7 +5,7 @@ let metadata={},dbPromise,placeId=null,active=0,objectUrls=new Map(),coverObserv
 const $=id=>document.getElementById(id);
 function loadMeta(){try{const x=JSON.parse(localStorage.getItem(META)||'{}');if(x&&typeof x==='object')metadata=x}catch{metadata={}}}
 function persist(){localStorage.setItem(META,JSON.stringify(metadata))}
-function photos(id){return metadata[String(id)]||[]}
+function photos(id){const key=String(id);if(!Array.isArray(metadata[key]))metadata[key]=[];return metadata[key]}
 function db(){if(!dbPromise)dbPromise=new Promise((resolve,reject)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(STORE))r.result.createObjectStore(STORE)};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});return dbPromise}
 async function putBlob(key,blob){const d=await db();return new Promise((resolve,reject)=>{const t=d.transaction(STORE,'readwrite');t.objectStore(STORE).put(blob,key);t.oncomplete=()=>resolve();t.onerror=()=>reject(t.error)})}
 async function getBlob(key){const d=await db();return new Promise((resolve,reject)=>{const r=d.transaction(STORE).objectStore(STORE).get(key);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}

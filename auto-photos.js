@@ -28,7 +28,7 @@ async function fetchFor(id,force=false){const b=B(),p=b.findPlace(id);if(!p)retu
  const task=(async()=>{setBusy(true);status('กำลังค้นหารูป '+p.name+' ...');try{
  const cached=cache[id];let found;if(!force&&cached&&Date.now()-cached.time<TTL){found=cached.photos}else{found=await queryCommons(p);cache[id]={time:Date.now(),photos:found};try{localStorage.setItem(AUTO_CACHE_KEY,JSON.stringify(cache))}catch{}}
  const arr=b.photos(id);const existing=new Set(arr.map(x=>x.url));let n=0;for(const item of found){if(arr.length>=5)break;if(!existing.has(item.url)){arr.push(item);existing.add(item.url);n++}}
- if(n)b.persist();await b.renderCovers();if(b.getPlaceId()===id)await b.renderGallery();status(found.length?`พบ ${found.length} รูป · เพิ่ม ${n} รูป (ตรวจสอบความตรงก่อนใช้)`:'ไม่พบภาพที่เหมาะสม ลองเพิ่ม URL หรืออัปโหลดเอง');
+ if(n)b.persist();await b.renderCovers();if(b.getPlaceId()===id)await b.renderGallery();status(found.length?`พบ ${found.length} รูป · บันทึก ${n} รูปแล้ว (ตรวจสอบความตรงก่อนใช้)`:'ไม่พบภาพที่เหมาะสม ลองเพิ่ม URL หรืออัปโหลดเอง');
  }catch(err){status('ค้นหารูปไม่สำเร็จ: '+(err.name==='AbortError'?'หมดเวลารอ':err.message)+' · ลองใหม่ได้')}finally{setBusy(false);inFlight.delete(id)}})();inFlight.set(id,task);return task}
 window.fetchPlacePhotos=(force=false)=>{const id=B().getPlaceId();if(id!==null)return fetchFor(id,force)};
 window.clearAutoPhotos=async()=>{const b=B(),id=b.getPlaceId();if(id===null)return;const arr=b.photos(id),n=arr.length;const remaining=arr.filter(x=>x.source!=='wikimedia');if(n===remaining.length)return status('ไม่มีรูปอัตโนมัติให้ลบ');arr.splice(0,arr.length,...remaining);b.persist();await b.renderGallery();await b.renderCovers();status('ลบรูปอัตโนมัติ '+(n-remaining.length)+' รูปแล้ว')};
